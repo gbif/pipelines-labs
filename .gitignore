@@ -1,0 +1,12 @@
+.idea
+*.iml
+*.class
+target
+*.iml
+output
+*.log
+tmpDwca
+java-generated
+miniCluster
+bin
+.DS_Store
