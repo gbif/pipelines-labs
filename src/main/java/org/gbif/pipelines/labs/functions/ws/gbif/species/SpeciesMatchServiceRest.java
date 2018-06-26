@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 class SpeciesMatchServiceRest {
 
@@ -54,7 +53,6 @@ class SpeciesMatchServiceRest {
     Retrofit retrofit = new Retrofit.Builder()
         .client(client)
         .baseUrl(WS_PATH)
-        .addConverterFactory(GsonConverterFactory.create())
         .build();
 
     return retrofit.create(SpeciesMatchService.class);

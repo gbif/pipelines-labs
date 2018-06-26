@@ -69,7 +69,7 @@ public class ExtendedOccurrenceTransform extends RecordTransform<ExtendedRecord,
     PCollectionTuple recordTupple = input.apply(recordTransform);
 
     // Collect Location
-    LocationRecordTransform locationTransform = LocationRecordTransform.create();
+    LocationRecordTransform locationTransform = LocationRecordTransform.create(null);
     PCollectionTuple locationTuple = input.apply(locationTransform);
 
     // Collect TemporalRecord

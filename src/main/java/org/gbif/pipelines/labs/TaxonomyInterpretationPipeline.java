@@ -54,7 +54,7 @@ public class TaxonomyInterpretationPipeline {
         .setCoder(AvroCoder.of(ExtendedRecord.class));
 
     // taxon interpretation
-    TaxonRecordTransform taxonRecordTransform = TaxonRecordTransform.create();
+    TaxonRecordTransform taxonRecordTransform = TaxonRecordTransform.create(null);
     PCollectionTuple taxonomicInterpreted = verbatimRecords.apply(taxonRecordTransform);
 
     // write taxon records
