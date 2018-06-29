@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "doc": {
+      "properties": {
+        "id": {"type": "keyword"},
+
+        ///InterpretedExtendedRecord
+        "basis_of_record": {"type": "keyword"},
+        "sex": {"type": "text"},
+        "life_stage": {"type":  "text"},
+        "establishment_means": {"type": "text"},
+        "individual_count": {"type": "int"},
+        "type_status": {"type": "text"},
+        "references": {"type":"text"},
+
+        ///LocationRecord
+        "continent": {"type":"text"},
+        "water_body": {"type":"text"},
+        "country": {"type":"text"},
+        "country_code": {"type":"text"},
+        "state_province": {"type":"text"},
+        "minimum_elevation_in_meters": {"type":"double"},
+        "maximum_elevation_in_meters": {"type":"double"},
+        "minimum_depth_in_meters": {"type":"double"},
+        "maximum_depth_in_meters": {"type":"double"},
+        "minimum_distance_above_surface_in_meters": {"type":"double"},
+        "maximum_distance_above_surface_in_meters": {"type":"double"},
+        "decimal_latitude": {"type":"double"},
+        "decimal_longitude": {"type":"double"},
+        "coordinate_uncertainty_in_meters": {"type":"double"},
+        "coordinate_precision": {"type":"double"},
+
+        //TemporalRecord
+        "year": {"type": "int"},
+        "month": {"type": "int"},
+        "day": {"type": "int"},
+        "event_date": {"type": "date_range", "format": "yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd||yyyy-MM||yyyy"},
+        "start_day_of_year": {"type": "int"},
+        "end_day_of_year": {"type": "int"},
+        "modified": {"type": "text"},
+        "date_Identified": {"type": "text"},
+
+        ///
+        "location": {"type": "geo_point"},
+        "scientific_name": {"type": "keyword","boost": 100},
+        "species_key": {"type": "keyword", "index": "false", "copy_to": false},
+        "verbatim": {"type": "nested"}
+
+      }
+    }
+  }
+}
