@@ -10,48 +10,57 @@
       "properties": {
         "id": {"type": "keyword"},
 
-        ///InterpretedExtendedRecord
-        "basis_of_record": {"type": "keyword"},
+        "basisOfRecord": {"type": "keyword"},
         "sex": {"type": "text"},
-        "life_stage": {"type":  "text"},
-        "establishment_means": {"type": "text"},
-        "individual_count": {"type": "int"},
-        "type_status": {"type": "text"},
+        "lifeStage": {"type":  "text"},
+        "establishmentMeans": {"type": "text"},
+        "individualCount": {"type": "integer"},
+        "typeStatus": {"type": "text"},
         "references": {"type":"text"},
 
-        ///LocationRecord
         "continent": {"type":"text"},
-        "water_body": {"type":"text"},
+        "waterBody": {"type":"text"},
         "country": {"type":"text"},
-        "country_code": {"type":"text"},
-        "state_province": {"type":"text"},
-        "minimum_elevation_in_meters": {"type":"double"},
-        "maximum_elevation_in_meters": {"type":"double"},
-        "minimum_depth_in_meters": {"type":"double"},
-        "maximum_depth_in_meters": {"type":"double"},
-        "minimum_distance_above_surface_in_meters": {"type":"double"},
-        "maximum_distance_above_surface_in_meters": {"type":"double"},
-        "decimal_latitude": {"type":"double"},
-        "decimal_longitude": {"type":"double"},
-        "coordinate_uncertainty_in_meters": {"type":"double"},
-        "coordinate_precision": {"type":"double"},
-
-        //TemporalRecord
-        "year": {"type": "int"},
-        "month": {"type": "int"},
-        "day": {"type": "int"},
-        "event_date": {"type": "date_range", "format": "yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd||yyyy-MM||yyyy"},
-        "start_day_of_year": {"type": "int"},
-        "end_day_of_year": {"type": "int"},
-        "modified": {"type": "text"},
-        "date_Identified": {"type": "text"},
-
-        ///
+        "countryCode": {"type":"text"},
+        "stateProvince": {"type":"text"},
+        "minimumElevationInMeters": {"type":"double"},
+        "maximumElevationInMeters": {"type":"double"},
+        "minimumDepthInMeters": {"type":"double"},
+        "maximumDepthInMeters": {"type":"double"},
+        "minimumDistanceAboveSurfaceInMeters": {"type":"double"},
+        "maximumDistanceAboveSurfaceInMeters": {"type":"double"},
+        "coordinateUncertaintyInMeters": {"type":"double"},
+        "coordinatePrecision": {"type":"double"},
         "location": {"type": "geo_point"},
-        "scientific_name": {"type": "keyword","boost": 100},
-        "species_key": {"type": "keyword", "index": "false", "copy_to": false},
-        "verbatim": {"type": "nested"}
 
+        "year": {"type": "integer"},
+        "month": {"type": "integer"},
+        "day": {"type": "integer"},
+        "eventDate": {"type": "date_range", "format": "yyyy-MM-dd'T'HH:mm:ss||yyyy-MM-dd||yyyy-MM||yyyy"},
+        "startDayOfYear": {"type": "integer"},
+        "endDayOfYear": {"type": "integer"},
+        "modified": {"type": "text"},
+        "dateIdentified": {"type": "text"},
+
+        "gbifScientificName": {"type": "keyword","boost": 100},
+        "gbifSpeciesKey": {"type": "keyword", "index": "false", "copy_to": false},
+        "gbifKingdom": {"type": "text"},
+        "gbifPhylum": {"type": "text"},
+        "gbifClass": {"type": "text"},
+        "gbifOrder": {"type": "text"},
+        "gbifFamily": {"type": "text"},
+        "gbifGenus": {"type": "text"},
+        "gbifSubgenus": {"type": "text"},
+        "gbifTaxonKey": {"type": "text"},
+
+        "synonym": {"type": "boolean"},
+        "usage":  {"type": "nested"},
+        "classification": {"type": "nested"},
+        "acceptedUsage":{"type": "text"},
+        "nomenclature":{"type": "text"},
+        "multimediaItems":{"type": "text"},
+
+        "verbatim": {"type": "nested", "enabled": false}
       }
     }
   }
