@@ -10,12 +10,8 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.apache.avro.specific.SpecificRecordBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Records2JsonConverter {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Records2JsonConverter.class);
 
   private final StringBuilder sb = new StringBuilder().append("{");
   private SpecificRecordBase[] bases;
@@ -72,10 +68,7 @@ public class Records2JsonConverter {
                 commonConvert(record);
               }
             });
-    String convert = convert();
-    //LOG.info(convert);
-    //isValidJSON(convert);
-    return convert;
+    return convert();
   }
 
   Records2JsonConverter commonConvert(SpecificRecordBase base) {
@@ -124,12 +117,4 @@ public class Records2JsonConverter {
     }
     return append("\"").append(value).append("\",");
   }
-
-//  public void isValidJSON(String json) {
-//    try (JsonParser parser = new ObjectMapper().getJsonFactory().createJsonParser(json)) {
-//      while (parser.nextToken() != null) {}
-//    } catch (IOException ex) {
-//      throw new IllegalArgumentException(json);
-//    }
-//  }
 }
