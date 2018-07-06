@@ -1,6 +1,5 @@
 package org.gbif.pipelines.labs.indexing.converter;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,8 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import com.cloudera.org.codehaus.jackson.JsonParser;
-import com.cloudera.org.codehaus.jackson.map.ObjectMapper;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +22,7 @@ public class Records2JsonConverter {
   private Set<String> escapeKeys = Collections.emptySet();
   private Map<Class<? extends SpecificRecordBase>, BiConsumer<SpecificRecordBase, StringBuilder>>
       biConsumer = new HashMap<>();
-  private String replaceKey = "";
+  private String[] replaceKeys = {};
 
   Records2JsonConverter() {}
 
@@ -42,8 +39,8 @@ public class Records2JsonConverter {
     return this;
   }
 
-  public Records2JsonConverter setReplaceKey(String replaceKey) {
-    this.replaceKey = replaceKey;
+  public Records2JsonConverter setReplaceKeys(String... replaceKeys) {
+    this.replaceKeys = replaceKeys;
     return this;
   }
 
@@ -76,56 +73,63 @@ public class Records2JsonConverter {
               }
             });
     String convert = convert();
-//    isValidJSON(convert);
-//    LOG.info(convert);
+    //LOG.info(convert);
+    //isValidJSON(convert);
     return convert;
   }
 
-  void commonConvert(SpecificRecordBase base) {
+  Records2JsonConverter commonConvert(SpecificRecordBase base) {
     base.getSchema()
         .getFields()
         .forEach(field -> addJsonField(field.name(), base.get(field.pos())));
+    return this;
   }
 
   private String convert() {
-    return append("}")
-        .toString()
+    append("}");
+    return sb.toString()
         .replaceAll("(\"\\{)|(\\{,)", "{")
         .replaceAll("(}\")|(,})", "}")
-        .replaceAll("(\"\\[)|(\\[,)", "[")
-        .replaceAll("(]\")|(,])", "]")
-        .replaceAll("(]\\[)", "],[")
+        .replaceAll("(\\[,)", "[")
+        .replaceAll("(\"\\[\\{)", "[{")
+        .replaceAll("(}]\")", "}]")
+        .replaceAll("(,])", "]")
+        .replaceAll("(}]\\[\\{)", "],[")
         .replaceAll("(\"\")", "\",\"")
         .replaceAll("(}\\{)", "},{");
   }
 
-  StringBuilder append(String str) {
-    return sb.append(str);
+  Records2JsonConverter append(Object obj) {
+    sb.append(obj);
+    return this;
   }
 
-  StringBuilder addJsonField(String key, Object value) {
+  Records2JsonConverter addJsonField(String key, Object value) {
     if (escapeKeys.contains(key)) {
-      return sb;
+      return this;
     }
     return addJsonFieldNoCheck(key, value);
   }
 
-  StringBuilder addJsonFieldNoCheck(String key, Object value) {
-    sb.append("\"").append(key.replaceAll(replaceKey, "")).append("\":");
+  Records2JsonConverter addJsonFieldNoCheck(String key, Object value) {
+    for (String rule : replaceKeys) {
+      key = key.replaceAll(rule, "");
+    }
+    sb.append("\"").append(key).append("\":");
     if (Objects.isNull(value)) {
-      return sb.append("null").append(",");
+      return append("null").append(",");
     }
     if (value instanceof String) {
-      value = ((String) value).replaceAll("\"", "\\\\\"");
+      value = ((String) value).replaceAll("(\\\\)", "\\\\\\\\").replaceAll("\"", "\\\\\"");
     }
-    return sb.append("\"").append(value).append("\",");
+    return append("\"").append(value).append("\",");
   }
 
-  public void isValidJSON(String json) {
-    try (JsonParser parser = new ObjectMapper().getJsonFactory().createJsonParser(json)) {
-      while (parser.nextToken() != null) {}
-    } catch (IOException ex) {
-      throw new IllegalArgumentException(json);
-    }
-  }
+//  public void isValidJSON(String json) {
+//    try (JsonParser parser = new ObjectMapper().getJsonFactory().createJsonParser(json)) {
+//      while (parser.nextToken() != null) {}
+//    } catch (IOException ex) {
+//      throw new IllegalArgumentException(json);
+//    }
+//  }
 }

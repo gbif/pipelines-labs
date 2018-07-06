@@ -18,12 +18,14 @@ public class GbifRecords2JsonConverter extends Records2JsonConverter {
   private static final String[] ESCAPE_KEYS = {
     "decimalLatitude", "decimalLongitude", "diagnostics", "id"
   };
-  private static final String KEY_REPLACE = "http://rs.tdwg.org/dwc/terms/";
+  private static final String[] REPLACE_KEYS = {
+    "http://rs.tdwg.org/dwc/terms/", "http://purl.org/dc/terms/"
+  };
 
   private GbifRecords2JsonConverter(SpecificRecordBase[] bases) {
     setSpecificRecordBase(bases);
     setEscapeKeys(ESCAPE_KEYS);
-    setReplaceKey(KEY_REPLACE);
+    setReplaceKeys(REPLACE_KEYS);
     addSpecificConverter(ExtendedRecord.class, getExtendedRecordConverter());
     addSpecificConverter(LocationRecord.class, getLocationRecordConverter());
     addSpecificConverter(TaxonRecord.class, getTaxonomyRecordConverter());
@@ -48,13 +50,14 @@ public class GbifRecords2JsonConverter extends Records2JsonConverter {
     return (record, sb) -> {
       LocationRecord location = (LocationRecord) record;
       append("\"location\":");
-      if (Objects.isNull(location.getDecimalLongitude()) || Objects.isNull(location.getDecimalLatitude())) {
+      if (Objects.isNull(location.getDecimalLongitude())
+          || Objects.isNull(location.getDecimalLatitude())) {
         append("null,");
       } else {
-        append("{");
-        addJsonField("lon", location.getDecimalLongitude());
-        addJsonField("lat", location.getDecimalLatitude());
-        append("},");
+        append("{")
+            .addJsonField("lon", location.getDecimalLongitude())
+            .addJsonField("lat", location.getDecimalLatitude())
+            .append("},");
       }
       //
       commonConvert(record);
