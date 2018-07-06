@@ -1,5 +1,6 @@
 package org.gbif.pipelines.labs.indexing.converter;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,9 +10,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
+import com.cloudera.org.codehaus.jackson.JsonParser;
+import com.cloudera.org.codehaus.jackson.map.ObjectMapper;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Records2JsonConverter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Records2JsonConverter.class);
 
   private final StringBuilder sb = new StringBuilder().append("{");
   private SpecificRecordBase[] bases;
@@ -68,7 +75,10 @@ public class Records2JsonConverter {
                 commonConvert(record);
               }
             });
-    return convert();
+    String convert = convert();
+//    isValidJSON(convert);
+//    LOG.info(convert);
+    return convert;
   }
 
   void commonConvert(SpecificRecordBase base) {
@@ -105,6 +115,17 @@ public class Records2JsonConverter {
     if (Objects.isNull(value)) {
       return sb.append("null").append(",");
     }
+    if (value instanceof String) {
+      value = ((String) value).replaceAll("\"", "\\\\\"");
+    }
     return sb.append("\"").append(value).append("\",");
+  }
+
+  public void isValidJSON(String json) {
+    try (JsonParser parser = new ObjectMapper().getJsonFactory().createJsonParser(json)) {
+      while (parser.nextToken() != null) {}
+    } catch (IOException ex) {
+      throw new IllegalArgumentException(json);
+    }
   }
 }

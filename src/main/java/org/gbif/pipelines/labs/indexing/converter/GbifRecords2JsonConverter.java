@@ -7,6 +7,7 @@ import org.gbif.pipelines.io.avro.taxon.RankedName;
 import org.gbif.pipelines.io.avro.taxon.TaxonRecord;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -46,10 +47,15 @@ public class GbifRecords2JsonConverter extends Records2JsonConverter {
   private BiConsumer<SpecificRecordBase, StringBuilder> getLocationRecordConverter() {
     return (record, sb) -> {
       LocationRecord location = (LocationRecord) record;
-      append("\"location\":{");
-      addJsonField("lon", location.getDecimalLongitude());
-      addJsonField("lat", location.getDecimalLatitude());
-      append("},");
+      append("\"location\":");
+      if (Objects.isNull(location.getDecimalLongitude()) || Objects.isNull(location.getDecimalLatitude())) {
+        append("null,");
+      } else {
+        append("{");
+        addJsonField("lon", location.getDecimalLongitude());
+        addJsonField("lat", location.getDecimalLatitude());
+        append("},");
+      }
       //
       commonConvert(record);
     };
