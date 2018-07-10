@@ -54,9 +54,9 @@
         "gbifTaxonKey": {"type": "text"},
 
         "synonym": {"type": "boolean"},
-        "usage":  {"type": "object"},
-        "classification": {"type": "object"},
-        "acceptedUsage":{"type": "object"},
+        "usage":  {"type": "object", "enabled": false},
+        "classification": {"type": "object", "enabled": false},
+        "acceptedUsage":{"type": "object", "enabled": false},
         "nomenclature":{"type": "text"},
         "multimediaItems":{"type": "nested", "enabled": false},
 
