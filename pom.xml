@@ -66,7 +66,7 @@
     <gbif-pipeline.version>1.1-SNAPSHOT</gbif-pipeline.version>
 
     <beam.elasticsearch.version>2.5.0-SNAPSHOT</beam.elasticsearch.version>
-    <apache.beam.version>2.4.0</apache.beam.version>
+    <apache.beam.version>2.5.0</apache.beam.version>
     <avro.version>1.8.2</avro.version>
     <hadoop-core.version>2.6.0-mr1-cdh5.12.1</hadoop-core.version>
     <hadoop-common.version>2.6.0-cdh5.12.1</hadoop-common.version>
