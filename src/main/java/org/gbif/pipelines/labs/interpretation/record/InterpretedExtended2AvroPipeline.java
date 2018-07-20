@@ -20,9 +20,6 @@ public class InterpretedExtended2AvroPipeline {
 
   private static final Logger LOG = LoggerFactory.getLogger(InterpretedExtended2AvroPipeline.class);
 
-  private static final String READ_STEP = "Read Avro files";
-  private static final String WRITE_STEP = "Write Avro files";
-
   public static void main(String[] args) {
 
     // Create a pipeline
@@ -39,7 +36,7 @@ public class InterpretedExtended2AvroPipeline {
 
     // STEP 1: Read Avro files
     PCollection<ExtendedRecord> verbatimRecords =
-        p.apply(READ_STEP, AvroIO.read(ExtendedRecord.class).from(inputFile));
+        p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(inputFile));
 
     // STEP 2: Validate ids uniqueness
     PCollectionTuple uniqueTuple = verbatimRecords.apply(uniquenessTransform);
@@ -52,7 +49,7 @@ public class InterpretedExtended2AvroPipeline {
 
     // STEP 4: Save to an avro file
     interpretedRecords.apply(
-        WRITE_STEP, AvroIO.write(InterpretedExtendedRecord.class).to(targetDirectory));
+      "Write Avro files", AvroIO.write(InterpretedExtendedRecord.class).to(targetDirectory));
 
     // Run
     LOG.info("Starting the pipeline");

@@ -23,8 +23,6 @@ public class Location2AvroPipeline {
   private static final Logger LOG = LoggerFactory.getLogger(Location2AvroPipeline.class);
 
   private static final String WS_DEV = "https://api.gbif-dev.org/";
-  private static final String READ_STEP = "Read Avro files";
-  private static final String WRITE_STEP = "Write Avro files";
 
   public static void main(String[] args) {
 
@@ -46,7 +44,7 @@ public class Location2AvroPipeline {
 
     // STEP 1: Read Avro files
     PCollection<ExtendedRecord> verbatimRecords =
-        p.apply(READ_STEP, AvroIO.read(ExtendedRecord.class).from(inputFile));
+        p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(inputFile));
 
     // STEP 2: Validate ids uniqueness
     PCollectionTuple uniqueTuple = verbatimRecords.apply(uniquenessTransform);
@@ -58,7 +56,7 @@ public class Location2AvroPipeline {
         locationRecordTuple.get(locationTransform.getDataTag()).apply(Kv2Value.create());
 
     // STEP 4: Save to an avro file
-    locationRecords.apply(WRITE_STEP, AvroIO.write(LocationRecord.class).to(targetDirectory));
+    locationRecords.apply("Write Avro files", AvroIO.write(LocationRecord.class).to(targetDirectory));
 
     // Run
     LOG.info("Starting the pipeline");

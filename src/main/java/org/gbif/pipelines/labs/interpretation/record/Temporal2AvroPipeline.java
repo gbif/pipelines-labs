@@ -20,9 +20,6 @@ public class Temporal2AvroPipeline {
 
   private static final Logger LOG = LoggerFactory.getLogger(Temporal2AvroPipeline.class);
 
-  private static final String READ_STEP = "Read Avro files";
-  private static final String WRITE_STEP = "Write Avro files";
-
   public static void main(String[] args) {
 
     // Create a pipeline
@@ -39,7 +36,7 @@ public class Temporal2AvroPipeline {
 
     // STEP 1: Read Avro files
     PCollection<ExtendedRecord> verbatimRecords =
-        p.apply(READ_STEP, AvroIO.read(ExtendedRecord.class).from(inputFile));
+        p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(inputFile));
 
     // STEP 2: Validate ids uniqueness
     PCollectionTuple uniqueTuple = verbatimRecords.apply(uniquenessTransform);
@@ -51,7 +48,8 @@ public class Temporal2AvroPipeline {
         temporalRecordTuple.get(temporalRecordTransform.getDataTag()).apply(Kv2Value.create());
 
     // STEP 4: Save to an avro file
-    temporalRecords.apply(WRITE_STEP, AvroIO.write(TemporalRecord.class).to(targetDirectory));
+    temporalRecords.apply(
+        "Write Avro files", AvroIO.write(TemporalRecord.class).to(targetDirectory));
 
     // Run
     LOG.info("Starting the pipeline");
