@@ -8,8 +8,6 @@ import org.gbif.pipelines.io.avro.ExtendedOccurrence;
 import org.gbif.pipelines.io.avro.ExtendedRecord;
 import org.gbif.pipelines.io.avro.InterpretedExtendedRecord;
 import org.gbif.pipelines.io.avro.issue.Issue;
-import org.gbif.pipelines.io.avro.issue.IssueLineageRecord;
-import org.gbif.pipelines.io.avro.issue.Lineage;
 import org.gbif.pipelines.io.avro.location.LocationRecord;
 import org.gbif.pipelines.transform.record.InterpretedExtendedRecordTransform;
 import org.gbif.pipelines.transform.validator.UniqueOccurrenceIdTransform;
@@ -49,7 +47,7 @@ public class DwCA2InterpretedRecordsPipeline {
     Pipeline p = Pipeline.create(options);
 
     Coders.registerAvroCoders(p, ExtendedRecord.class, LocationRecord.class, ExtendedOccurrence.class);
-    Coders.registerAvroCoders(p, Issue.class, Lineage.class, IssueLineageRecord.class);
+    Coders.registerAvroCoders(p, Issue.class);
 
     // STEP 1: Read the DwC-A using our custom reader
     PCollection<ExtendedRecord> rawRecords = p.apply("Read from Darwin Core Archive",
