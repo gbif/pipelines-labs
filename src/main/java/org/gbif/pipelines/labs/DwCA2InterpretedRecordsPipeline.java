@@ -11,13 +11,13 @@ import org.gbif.pipelines.io.avro.issue.Issue;
 import org.gbif.pipelines.io.avro.issue.IssueLineageRecord;
 import org.gbif.pipelines.io.avro.issue.Lineage;
 import org.gbif.pipelines.io.avro.location.LocationRecord;
-import org.gbif.pipelines.transform.Kv2Value;
 import org.gbif.pipelines.transform.record.InterpretedExtendedRecordTransform;
 import org.gbif.pipelines.transform.validator.UniqueOccurrenceIdTransform;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.AvroIO;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.slf4j.Logger;
@@ -67,7 +67,7 @@ public class DwCA2InterpretedRecordsPipeline {
     InterpretedExtendedRecordTransform extendedRecordTransform = InterpretedExtendedRecordTransform.create();
     PCollectionTuple extendedRecordsTuple = uniqueRecords.apply(extendedRecordTransform);
     PCollection<InterpretedExtendedRecord> extendedRecords = extendedRecordsTuple.get(extendedRecordTransform.getDataTag())
-        .apply(Kv2Value.create());
+        .apply(Values.create());
 
     // STEP 5: writing interpreted occurence and issues to the avro file
     extendedRecords.apply("Save the processed records as Avro", AvroIO.write(InterpretedExtendedRecord.class).to(issueDirectory));

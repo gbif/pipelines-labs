@@ -6,13 +6,13 @@ import org.gbif.pipelines.core.ws.config.Config;
 import org.gbif.pipelines.core.ws.config.HttpConfigFactory;
 import org.gbif.pipelines.io.avro.ExtendedRecord;
 import org.gbif.pipelines.io.avro.location.LocationRecord;
-import org.gbif.pipelines.transform.Kv2Value;
 import org.gbif.pipelines.transform.record.LocationRecordTransform;
 import org.gbif.pipelines.transform.validator.UniqueOccurrenceIdTransform;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.AvroIO;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class Location2AvroPipeline {
     // STEP 3: Run the main transform
     PCollectionTuple locationRecordTuple = extendedRecords.apply(locationTransform);
     PCollection<LocationRecord> locationRecords =
-        locationRecordTuple.get(locationTransform.getDataTag()).apply(Kv2Value.create());
+        locationRecordTuple.get(locationTransform.getDataTag()).apply(Values.create());
 
     // STEP 4: Save to an avro file
     locationRecords.apply("Write Avro files", AvroIO.write(LocationRecord.class).to(targetDirectory));

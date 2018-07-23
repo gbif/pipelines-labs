@@ -4,13 +4,13 @@ import org.gbif.pipelines.config.DataPipelineOptionsFactory;
 import org.gbif.pipelines.config.DataProcessingPipelineOptions;
 import org.gbif.pipelines.io.avro.ExtendedRecord;
 import org.gbif.pipelines.io.avro.temporal.TemporalRecord;
-import org.gbif.pipelines.transform.Kv2Value;
 import org.gbif.pipelines.transform.record.TemporalRecordTransform;
 import org.gbif.pipelines.transform.validator.UniqueOccurrenceIdTransform;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.AvroIO;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class Temporal2AvroPipeline {
     // STEP 3: Run main transform
     PCollectionTuple temporalRecordTuple = extendedRecords.apply(temporalRecordTransform);
     PCollection<TemporalRecord> temporalRecords =
-        temporalRecordTuple.get(temporalRecordTransform.getDataTag()).apply(Kv2Value.create());
+        temporalRecordTuple.get(temporalRecordTransform.getDataTag()).apply(Values.create());
 
     // STEP 4: Save to an avro file
     temporalRecords.apply(

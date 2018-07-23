@@ -6,13 +6,13 @@ import org.gbif.pipelines.config.DataProcessingPipelineOptions;
 import org.gbif.pipelines.io.avro.ExtendedRecord;
 import org.gbif.pipelines.io.avro.InterpretedExtendedRecord;
 import org.gbif.pipelines.io.avro.issue.OccurrenceIssue;
-import org.gbif.pipelines.transform.Kv2Value;
 import org.gbif.pipelines.transform.record.InterpretedExtendedRecordTransform;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.io.AvroIO;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class InterpretDwCAvroPipeline {
     // STEP 3: Record level interpretations
     interpreted
         .get(transform.getDataTag())
-        .apply(Kv2Value.create())
+        .apply(Values.create())
         .setCoder(AvroCoder.of(InterpretedExtendedRecord.class))
         .apply(
             "Write Interpreted Avro files",
@@ -57,7 +57,7 @@ public class InterpretDwCAvroPipeline {
     // STEP 4: Exporting issues
     interpreted
         .get(transform.getIssueTag())
-        .apply(Kv2Value.create())
+        .apply(Values.create())
         .setCoder(AvroCoder.of(OccurrenceIssue.class))
         .apply(
             "Write Interpretation Issues Avro files",
