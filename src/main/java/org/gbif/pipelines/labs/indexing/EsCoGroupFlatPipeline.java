@@ -140,8 +140,8 @@ public class EsCoGroupFlatPipeline {
     resultCollection.apply(
       ElasticsearchIO.write()
         .withConnectionConfiguration(esConfig)
-        .withMaxBatchSizeBytes(options.getESMaxBatchSize())
-        .withMaxBatchSize(options.getESMaxBatchSizeBytes()));
+        .withMaxBatchSizeBytes(options.getESMaxBatchSizeBytes())
+        .withMaxBatchSize(options.getESMaxBatchSize()));
 
     LOG.info("Run the pipeline");
     p.run().waitUntilFinish();

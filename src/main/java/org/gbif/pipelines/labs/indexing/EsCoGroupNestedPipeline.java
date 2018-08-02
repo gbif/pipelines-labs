@@ -146,13 +146,13 @@ public class EsCoGroupNestedPipeline {
 
     LOG.info("Adding step 4: Elasticsearch configuration");
     ElasticsearchIO.ConnectionConfiguration esConfig = ElasticsearchIO.ConnectionConfiguration.create(
-      options.getESAddresses(), options.getESIndexPrefix(), options.getESIndexPrefix());
+      options.getESAddresses(), options.getDatasetId()+"_"+options.getAttempt(), "record");
 
     resultCollection.apply(
       ElasticsearchIO.write()
         .withConnectionConfiguration(esConfig)
-        .withMaxBatchSizeBytes(options.getESMaxBatchSize())
-        .withMaxBatchSize(options.getESMaxBatchSizeBytes()));
+        .withMaxBatchSizeBytes(options.getESMaxBatchSizeBytes())
+        .withMaxBatchSize(options.getESMaxBatchSize()));
 
     LOG.info("Run the pipeline");
     p.run().waitUntilFinish();
