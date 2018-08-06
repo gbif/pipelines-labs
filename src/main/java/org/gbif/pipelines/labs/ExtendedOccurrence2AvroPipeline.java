@@ -28,8 +28,8 @@ public class ExtendedOccurrence2AvroPipeline {
     // Create a pipeline
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
     Pipeline p = Pipeline.create(options);
-    String inputFile = options.getInputFile();
-    String targetDirectory = options.getDefaultTargetDirectory();
+    String inputFile = options.getInputPath();
+    String targetDirectory = options.getTargetPath();
 
     // Transforms to use
     UniqueOccurrenceIdTransform uniquenessTransform =

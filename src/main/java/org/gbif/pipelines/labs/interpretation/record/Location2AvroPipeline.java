@@ -28,8 +28,8 @@ public class Location2AvroPipeline {
 
     // Create a pipeline
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
-    String inputFile = options.getInputFile();
-    String targetDirectory = options.getDefaultTargetDirectory();
+    String inputFile = options.getInputPath();
+    String targetDirectory = options.getTargetPath();
 
     Pipeline p = Pipeline.create(options);
 

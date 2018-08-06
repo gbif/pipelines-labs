@@ -41,8 +41,8 @@ public class DwCA2InterpretedRecordsPipeline {
     // STEP 0: Configure pipeline
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
 
-    String targetDirectory = options.getDefaultTargetDirectory() + "common/interpreted";
-    String issueDirectory = options.getDefaultTargetDirectory() + "common/issue/issue";
+    String targetDirectory = options.getTargetPath() + "common/interpreted";
+    String issueDirectory = options.getTargetPath() + "common/issue/issue";
 
     Pipeline p = Pipeline.create(options);
 
@@ -51,7 +51,7 @@ public class DwCA2InterpretedRecordsPipeline {
 
     // STEP 1: Read the DwC-A using our custom reader
     PCollection<ExtendedRecord> rawRecords = p.apply("Read from Darwin Core Archive",
-                                                     DwCAIO.Read.withPaths(options.getInputFile()));
+                                                     DwCAIO.Read.withPaths(options.getInputPath()));
 
     // STEP 2: Filter unique records by OccurrenceId
     UniqueOccurrenceIdTransform uniqueTransform = UniqueOccurrenceIdTransform.create();

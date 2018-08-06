@@ -30,15 +30,15 @@ public class InterpretDwCAvroPipeline {
   public static void main(String[] args) {
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
 
-    String targetDirectory = options.getDefaultTargetDirectory() + "common/interpreted";
-    String issueDirectory = options.getDefaultTargetDirectory() + "common/issue/issue";
+    String targetDirectory = options.getTargetPath() + "common/interpreted";
+    String issueDirectory = options.getTargetPath() + "common/issue/issue";
 
     Pipeline p = Pipeline.create(options);
     Coders.registerAvroCoders(p, ExtendedRecord.class, InterpretedExtendedRecord.class);
 
     // STEP 1: Read Avro files
     PCollection<ExtendedRecord> verbatimRecords =
-        p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputFile()))
+        p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputPath()))
             .setCoder(AvroCoder.of(ExtendedRecord.class));
 
     // STEP 2: Convert the objects (interpretation)

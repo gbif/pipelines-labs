@@ -70,7 +70,7 @@ public class EsCoGroupFlatPipeline {
     final TupleTag<TaxonRecord> taxonomyTag = new TupleTag<TaxonRecord>() {};
     final TupleTag<MultimediaRecord> multimediaTag = new TupleTag<MultimediaRecord>() {};
 
-    final String pathIn = options.getInputFile();
+    final String pathIn = options.getInputPath();
 
     final String pathCommon = pathIn + "common/interpreted*.avro";
     final String pathTemporal = pathIn + "temporal/interpreted*.avro";
@@ -135,7 +135,7 @@ public class EsCoGroupFlatPipeline {
 
     LOG.info("Adding step 4: Elasticsearch configuration");
     ElasticsearchIO.ConnectionConfiguration esConfig = ElasticsearchIO.ConnectionConfiguration.create(
-      options.getESAddresses(), options.getESIndexPrefix(), options.getESIndexPrefix());
+      options.getESHosts(), options.getESIndexName(), options.getESIndexName());
 
     resultCollection.apply(
       ElasticsearchIO.write()

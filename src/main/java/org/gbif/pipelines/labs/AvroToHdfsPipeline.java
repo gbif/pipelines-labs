@@ -30,13 +30,13 @@ public class AvroToHdfsPipeline {
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
     Pipeline pipeline = Pipeline.create(options);
 
-    String targetPath = TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId());
+    String targetPath = TargetPath.fullPath(options.getTargetPath(), options.getDatasetId());
 
     LOG.info("Target path : {}", targetPath);
 
     // Read Avro files
     PCollection<UntypedOccurrence> verbatimRecords =
-      pipeline.apply("Read Avro files", AvroIO.read(UntypedOccurrence.class).from(options.getInputFile()));
+      pipeline.apply("Read Avro files", AvroIO.read(UntypedOccurrence.class).from(options.getInputPath()));
 
     verbatimRecords.apply("Write Avro files",
                           AvroIO.write(UntypedOccurrence.class)

@@ -71,8 +71,8 @@ public class EsCoGroupNestedPipeline {
     final TupleTag<MultimediaRecord> multimediaTag = new TupleTag<MultimediaRecord>() {};
     final TupleTag<ExtendedRecord> extendedRecordTag = new TupleTag<ExtendedRecord>() {};
 
-    final String pathIn = options.getInputFile()+options.getDatasetId()+"/"+options.getAttempt()+"/";
-    final String pathOut = options.getDefaultTargetDirectory();
+    final String pathIn = options.getInputPath()+options.getDatasetId()+"/"+options.getAttempt()+"/";
+    final String pathOut = options.getTargetPath();
 
     final String pathCommon = pathIn + "common/interpreted*.avro";
     final String pathTemporal = pathIn + "temporal/interpreted*.avro";

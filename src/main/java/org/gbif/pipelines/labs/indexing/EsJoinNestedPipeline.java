@@ -49,15 +49,15 @@ public class EsJoinNestedPipeline {
     EsProcessingPipelineOptions options = DataPipelineOptionsFactory.createForEs(args);
     Pipeline pipeline = Pipeline.create(options);
 
-    String defTargetDir = options.getDefaultTargetDirectory().endsWith(Path.SEPARATOR)
-      ? options.getDefaultTargetDirectory()
-      : options.getDefaultTargetDirectory().concat(Path.SEPARATOR);
+    String defTargetDir = options.getTargetPath().endsWith(Path.SEPARATOR)
+      ? options.getTargetPath()
+      : options.getTargetPath().concat(Path.SEPARATOR);
     String inputDirectory =
       defTargetDir + options.getDatasetId() + Path.SEPARATOR + options.getAttempt() + Path.SEPARATOR;
-    String index = options.getESIndexPrefix() + "_" + options.getDatasetId() + "_" + options.getAttempt();
+    String index = options.getESIndexName() + "_" + options.getDatasetId() + "_" + options.getAttempt();
 
     ElasticsearchIO.ConnectionConfiguration connectionConfiguration =
-      ElasticsearchIO.ConnectionConfiguration.create(options.getESAddresses(), index, index);
+      ElasticsearchIO.ConnectionConfiguration.create(options.getESHosts(), index, index);
     PCollection<String> apply1 = pipeline.apply("Reading location data", AvroIO.read(LocationRecord.class).from(inputDirectory + "location/interpreted*.avro"))
       .apply("Converting location data to json", MapElements.into(TypeDescriptor.of(String.class)).via(new MapFn(LOCATION, OCCURRENCE_ID_KEY)));
 

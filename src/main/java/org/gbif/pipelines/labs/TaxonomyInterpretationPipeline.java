@@ -35,8 +35,8 @@ public class TaxonomyInterpretationPipeline {
   /** Suitable to run programmatically. */
   public static void runPipeline(DataProcessingPipelineOptions options) {
     Pipeline pipeline = Pipeline.create(options);
-    String targetDirectory = options.getDefaultTargetDirectory() + "taxonomy/interpreted";
-    String issueDirectory = options.getDefaultTargetDirectory() + "taxonomy/issue/issue";
+    String targetDirectory = options.getTargetPath() + "taxonomy/interpreted";
+    String issueDirectory = options.getTargetPath() + "taxonomy/issue/issue";
 
     // register Avro coders for serializing our messages
     Coders.registerAvroCoders(
@@ -51,7 +51,7 @@ public class TaxonomyInterpretationPipeline {
     PCollection<ExtendedRecord> verbatimRecords =
         pipeline
             .apply(
-                "Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputFile()))
+                "Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputPath()))
             .setCoder(AvroCoder.of(ExtendedRecord.class));
 
     // taxon interpretation

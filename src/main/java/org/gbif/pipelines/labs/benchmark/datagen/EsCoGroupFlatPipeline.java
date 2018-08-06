@@ -66,8 +66,8 @@ public class EsCoGroupFlatPipeline {
     final TupleTag<MultimediaRecord> multimediaTag = new TupleTag<MultimediaRecord>() {};
 
     final String pathIn =
-        options.getInputFile() + options.getDatasetId() + "/" + options.getAttempt() + "/";
-    final String pathOut = options.getDefaultTargetDirectory();
+        options.getInputPath() + options.getDatasetId() + "/" + options.getAttempt() + "/";
+    final String pathOut = options.getTargetPath();
     final String pathCommon = pathIn + "common/interpreted*.avro";
     final String pathTemporal = pathIn + "temporal/interpreted*.avro";
     final String pathLocation = pathIn + "location/interpreted*.avro";

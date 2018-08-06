@@ -64,16 +64,16 @@ public class DwcaToHdfsPipelineTest {
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(configuration);
     options.setRunner(DirectRunner.class);
 
-    options.setInputFile(DWCA_FILE_PATH);
+    options.setInputPath(DWCA_FILE_PATH);
     options.setDatasetId("123");
-    options.setDefaultTargetDirectory(clusterConfig.hdfsClusterBaseUri + "/pipelines");
+    options.setTargetPath(clusterConfig.hdfsClusterBaseUri + "/pipelines");
 
     // create and run pipeline
     createAndRunPipeline(options);
 
     // test results
     URI uriTargetPath =
-      clusterConfig.hdfsClusterBaseUri.resolve(TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId())
+      clusterConfig.hdfsClusterBaseUri.resolve(TargetPath.fullPath(options.getTargetPath(), options.getDatasetId())
                                  + "*");
     FileStatus[] fileStatuses = clusterConfig.fs.globStatus(new Path(uriTargetPath.toString()));
 
@@ -102,7 +102,7 @@ public class DwcaToHdfsPipelineTest {
   private void createAndRunPipeline(DataProcessingPipelineOptions options) {
     Objects.requireNonNull(options, "Pipeline options cannot be null");
 
-    String targetPath = TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId());
+    String targetPath = TargetPath.fullPath(options.getTargetPath(), options.getDatasetId());
 
     LOG.info("Target path : {}", targetPath);
 
@@ -112,11 +112,11 @@ public class DwcaToHdfsPipelineTest {
     Coders.registerAvroCoders(pipeline, ExtendedRecord.class, UntypedOccurrence.class);
 
     // temp dir for Dwca
-    String tmpDirDwca = new File(options.getInputFile()).getParentFile().getPath() + File.separator + "tmpDwca";
+    String tmpDirDwca = new File(options.getInputPath()).getParentFile().getPath() + File.separator + "tmpDwca";
 
     // Read the DwC-A using our custom reader
     PCollection<ExtendedRecord> rawRecords =
-      pipeline.apply("Read from Darwin Core Archive", DwCAIO.Read.withPaths(options.getInputFile(), tmpDirDwca));
+      pipeline.apply("Read from Darwin Core Archive", DwCAIO.Read.withPaths(options.getInputPath(), tmpDirDwca));
 
     // TODO: Explore the generics as to why the coder registry does not find it and we need to set the coder explicitly
     PCollection<UntypedOccurrence> verbatimRecords = rawRecords.apply(

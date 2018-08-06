@@ -48,16 +48,16 @@ public class Avro2ElasticSearchPipeline {
 
     // Read Avro files
     PCollection<ExtendedRecord> verbatimStream =
-      p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputFile()));
+      p.apply("Read Avro files", AvroIO.read(ExtendedRecord.class).from(options.getInputPath()));
 
     // Convert to JSON
     PCollection<String> jsonInputStream = verbatimStream.apply("Convert to JSON", ParDo.of(new RecordFormatter()));
 
     // Index in ES
     jsonInputStream.apply(ElasticsearchIO.write()
-                            .withConnectionConfiguration(ElasticsearchIO.ConnectionConfiguration.create(options.getESAddresses(),
-                                                                                                        options.getESIndexPrefix(),
-                                                                                                        options.getESIndexPrefix()))
+                            .withConnectionConfiguration(ElasticsearchIO.ConnectionConfiguration.create(options.getESHosts(),
+                                                                                                        options.getESIndexName(),
+                                                                                                        options.getESIndexName()))
                             .withMaxBatchSize(options.getESMaxBatchSize()));
 
     // instruct the writer to use a provided document ID

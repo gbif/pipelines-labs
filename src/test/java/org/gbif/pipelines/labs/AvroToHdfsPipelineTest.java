@@ -56,16 +56,16 @@ public class AvroToHdfsPipelineTest {
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(configuration);
     options.setRunner(DirectRunner.class);
 
-    options.setInputFile(AVRO_FILE_PATH);
+    options.setInputPath(AVRO_FILE_PATH);
     options.setDatasetId("123");
-    options.setDefaultTargetDirectory(clusterConfig.hdfsClusterBaseUri + "pipelines");
+    options.setTargetPath(clusterConfig.hdfsClusterBaseUri + "pipelines");
 
     // create and run pipeline
     createAndRunPipeline(options);
 
     // test results
     URI uriTargetPath =
-      clusterConfig.hdfsClusterBaseUri.resolve(TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId())
+      clusterConfig.hdfsClusterBaseUri.resolve(TargetPath.fullPath(options.getTargetPath(), options.getDatasetId())
                                  + "*");
     FileStatus[] fileStatuses = clusterConfig.fs.globStatus(new Path(uriTargetPath.toString()));
 
@@ -83,7 +83,7 @@ public class AvroToHdfsPipelineTest {
   private void createAndRunPipeline(DataProcessingPipelineOptions options) {
     Objects.requireNonNull(options, "Pipeline options cannot be null");
 
-    String targetPath = TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId());
+    String targetPath = TargetPath.fullPath(options.getTargetPath(), options.getDatasetId());
 
     LOG.info("Target path : {}", targetPath);
 
@@ -91,7 +91,7 @@ public class AvroToHdfsPipelineTest {
 
     // Read Avro files
     PCollection<UntypedOccurrence> verbatimRecords =
-      pipeline.apply("Read Avro files", AvroIO.read(UntypedOccurrence.class).from(options.getInputFile()));
+      pipeline.apply("Read Avro files", AvroIO.read(UntypedOccurrence.class).from(options.getInputPath()));
 
     verbatimRecords.apply("Write Avro files",
                           AvroIO.write(UntypedOccurrence.class)

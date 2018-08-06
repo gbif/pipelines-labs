@@ -43,7 +43,7 @@ public class TaxonomyInterpretationPipelineTest {
     final String issuesOutPath = clusterConfig.hdfsClusterBaseUri + "taxonIssues";
 
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(configuration);
-    options.setInputFile(sourcePath);
+    options.setInputPath(sourcePath);
 
     TaxonomyInterpretationPipeline.runPipeline(options);
 

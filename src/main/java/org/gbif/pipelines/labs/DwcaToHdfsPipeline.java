@@ -41,7 +41,7 @@ public class DwcaToHdfsPipeline {
     DataProcessingPipelineOptions options = DataPipelineOptionsFactory.create(args);
     Pipeline pipeline = Pipeline.create(options);
 
-    String targetPath = TargetPath.fullPath(options.getDefaultTargetDirectory(), options.getDatasetId());
+    String targetPath = TargetPath.fullPath(options.getTargetPath(), options.getDatasetId());
 
     LOG.info("Target path : {}", targetPath);
 
@@ -49,13 +49,13 @@ public class DwcaToHdfsPipeline {
     Coders.registerAvroCoders(pipeline, ExtendedRecord.class, UntypedOccurrence.class);
 
     // temp dir for Dwca.
-    String tmpDirDwca = new File(options.getInputFile()).getParentFile().getPath() + File.separator + TMP_DIR_DWCA;
+    String tmpDirDwca = new File(options.getInputPath()).getParentFile().getPath() + File.separator + TMP_DIR_DWCA;
 
     LOG.info("tmp dir Dwca : {}", tmpDirDwca);
 
     // Read the DwC-A using our custom reader
     PCollection<ExtendedRecord> rawRecords =
-        pipeline.apply("Read from Darwin Core Archive", DwCAIO.Read.withPaths(options.getInputFile(), tmpDirDwca));
+        pipeline.apply("Read from Darwin Core Archive", DwCAIO.Read.withPaths(options.getInputPath(), tmpDirDwca));
 
     // TODO: Explore the generics as to whßy the coder registry does not find it and we need to set the coder explicitly
     PCollection<UntypedOccurrence> verbatimRecords = rawRecords.apply(

@@ -72,7 +72,7 @@ public class EsCoGroupNestedPipeline {
     final TupleTag<MultimediaRecord> multimediaTag = new TupleTag<MultimediaRecord>() {};
     final TupleTag<ExtendedRecord> extendedRecordTag = new TupleTag<ExtendedRecord>() {};
 
-    final String pathIn = options.getInputFile();
+    final String pathIn = options.getInputPath();
 
     final String pathCommon = pathIn + "common/interpreted*.avro";
     final String pathTemporal = pathIn + "temporal/interpreted*.avro";
@@ -146,7 +146,7 @@ public class EsCoGroupNestedPipeline {
 
     LOG.info("Adding step 4: Elasticsearch configuration");
     ElasticsearchIO.ConnectionConfiguration esConfig = ElasticsearchIO.ConnectionConfiguration.create(
-      options.getESAddresses(), options.getDatasetId()+"_"+options.getAttempt(), "record");
+      options.getESHosts(), options.getDatasetId()+"_"+options.getAttempt(), "record");
 
     resultCollection.apply(
       ElasticsearchIO.write()
