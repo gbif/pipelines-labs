@@ -5,7 +5,7 @@ import java.util.function.Predicate;
 public class Assertion<T> implements Predicate<T> {
 
   public enum Severity {
-    VALIDATION, MEASUREMENT, AMENDMENT;
+    VALIDATION, MEASUREMENT, AMENDMENT
   }
 
   private final Predicate<T> evaluation;

@@ -2,9 +2,7 @@ package org.gbif.pipelines.labs.benchmark.datagen;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -14,18 +12,21 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 /**
- * Script to convert all interpreted records to json (flat & nested).
- * Sample script command
- * for flat
- * nohup java -cp pipelines-labs-1.1-SNAPSHOT-shaded.jar org.gbif.pipelines.labs.benchmark.datagen.ConvertToJSON outputFile=hdfs://ha-nn/gbif-data/flat/ inputFile=hdfs://ha-nn/data/ingest/ hdfsSite=hdfs-site.xml coreSite=coresite.xml type=flat homedir=/home/rpathak > /var/lib/hadoop-hdfs/flat.out &
- * for nested
- * nohup java -cp pipelines-labs-1.1-SNAPSHOT-shaded.jar org.gbif.pipelines.labs.benchmark.datagen.ConvertToJSON outputFile=hdfs://ha-nn/gbif-data/nested/ inputFile=hdfs://ha-nn/data/ingest/ hdfsSite=hdfs-site.xml coreSite=coresite.xml type=nested homedir=/home/rpathak > /var/lib/hadoop-hdfs/flat.out &
+ * Script to convert all interpreted records to json (flat & nested). Sample script command for flat
+ * nohup java -cp pipelines-labs-1.1-SNAPSHOT-shaded.jar
+ * org.gbif.pipelines.labs.benchmark.datagen.ConvertToJSON outputFile=hdfs://ha-nn/gbif-data/flat/
+ * inputFile=hdfs://ha-nn/data/ingest/ hdfsSite=hdfs-site.xml coreSite=coresite.xml type=flat
+ * homedir=/home/rpathak > /var/lib/hadoop-hdfs/flat.out & for nested nohup java -cp
+ * pipelines-labs-1.1-SNAPSHOT-shaded.jar org.gbif.pipelines.labs.benchmark.datagen.ConvertToJSON
+ * outputFile=hdfs://ha-nn/gbif-data/nested/ inputFile=hdfs://ha-nn/data/ingest/
+ * hdfsSite=hdfs-site.xml coreSite=coresite.xml type=nested homedir=/home/rpathak >
+ * /var/lib/hadoop-hdfs/flat.out &
  */
 public class ConvertToJSON {
 
   public static void main(String[] args) throws IOException, InterruptedException {
     Map<Options, String> cmdOpts = new HashMap<>();
-    List<Options> optionsAvailable = Arrays.asList(Options.values());
+    Options[] optionsAvailable = Options.values();
     for (Options opt : optionsAvailable) {
       cmdOpts.put(opt, null);
     }
@@ -51,29 +52,47 @@ public class ConvertToJSON {
       String defaultTargetDirectory = cmdOpts.get(Options.outputFile);
       String homeDir = cmdOpts.get(Options.homedir);
 
-      String[] consArgsFlat = {"java", "-cp", "pipelines-labs-1.1-SNAPSHOT-shaded.jar",
-        "org.gbif.pipelines.labs.benchmark.datagen.EsCoGroupFlatPipeline", "--datasetId=" + datasetId,
-        "--attempt=" + attempt, "--hdfsSiteConfig=" + hdfsSite, "--coreSiteConfig=" + coreSite,
-        "--defaultTargetDirectory=" + defaultTargetDirectory, "--inputFile=" + inputFile};
-      String[] consArgsNested = {"java", "-cp", "pipelines-labs-1.1-SNAPSHOT-shaded.jar",
-        "org.gbif.pipelines.labs.benchmark.datagen.EsCoGroupNestedPipeline", "--datasetId=" + datasetId,
-        "--attempt=" + attempt, "--hdfsSiteConfig=" + hdfsSite, "--coreSiteConfig=" + coreSite,
-        "--defaultTargetDirectory=" + defaultTargetDirectory, "--inputFile=" + inputFile};
+      String[] consArgsFlat = {
+        "java",
+        "-cp",
+        "pipelines-labs-1.1-SNAPSHOT-shaded.jar",
+        "org.gbif.pipelines.labs.benchmark.datagen.EsCoGroupFlatPipeline",
+        "--datasetId=" + datasetId,
+        "--attempt=" + attempt,
+        "--hdfsSiteConfig=" + hdfsSite,
+        "--coreSiteConfig=" + coreSite,
+        "--defaultTargetDirectory=" + defaultTargetDirectory,
+        "--inputFile=" + inputFile
+      };
+      String[] consArgsNested = {
+        "java",
+        "-cp",
+        "pipelines-labs-1.1-SNAPSHOT-shaded.jar",
+        "org.gbif.pipelines.labs.benchmark.datagen.EsCoGroupNestedPipeline",
+        "--datasetId=" + datasetId,
+        "--attempt=" + attempt,
+        "--hdfsSiteConfig=" + hdfsSite,
+        "--coreSiteConfig=" + coreSite,
+        "--defaultTargetDirectory=" + defaultTargetDirectory,
+        "--inputFile=" + inputFile
+      };
 
       if (cmdOpts.get(Options.type).equals(Type.flat.name())) {
         ProcessBuilder pbuilder = new ProcessBuilder(consArgsFlat);
         pbuilder.directory(new File(homeDir));
-        pbuilder.redirectErrorStream(true)
-          .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-          .start()
-          .waitFor(10, TimeUnit.MINUTES);
+        pbuilder
+            .redirectErrorStream(true)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .start()
+            .waitFor(10, TimeUnit.MINUTES);
       } else {
         ProcessBuilder pbuilder = new ProcessBuilder(consArgsNested);
         pbuilder.directory(new File(homeDir));
-        pbuilder.redirectErrorStream(true)
-          .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-          .start()
-          .waitFor(10, TimeUnit.MINUTES);
+        pbuilder
+            .redirectErrorStream(true)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .start()
+            .waitFor(10, TimeUnit.MINUTES);
       }
     }
     System.out.println("total counts converted =" + count);
@@ -81,10 +100,16 @@ public class ConvertToJSON {
   }
 
   enum Type {
-    flat, nested;
+    flat,
+    nested
   }
 
   enum Options {
-    inputFile, outputFile, hdfsSite, coreSite, type, homedir;
+    inputFile,
+    outputFile,
+    hdfsSite,
+    coreSite,
+    type,
+    homedir
   }
 }

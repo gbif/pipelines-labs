@@ -3,7 +3,6 @@ package org.gbif.pipelines.labs.benchmark.datagen;
 import org.gbif.pipelines.common.beam.Coders;
 import org.gbif.pipelines.config.DataPipelineOptionsFactory;
 import org.gbif.pipelines.config.DataProcessingPipelineOptions;
-import org.gbif.pipelines.config.EsProcessingPipelineOptions;
 import org.gbif.pipelines.io.avro.ExtendedRecord;
 import org.gbif.pipelines.io.avro.InterpretedExtendedRecord;
 import org.gbif.pipelines.io.avro.location.LocationRecord;
@@ -30,17 +29,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- *
- *
  * CoGrouping and dumping text file with nested json objects
  *
- * How to run example:
+ * <p>How to run example:
  *
- * sudo -u hdfs spark2-submit --conf spark.default.parallelism=100 --conf
+ * <p>sudo -u hdfs spark2-submit --conf spark.default.parallelism=100 --conf
  * spark.executor.memoryOverhead=4000 --class
- * org.gbif.pipelines.labs.indexing.EsCoGroupNestedPipeline --master yarn --deploy-mode
- * cluster --executor-memory 12G --executor-cores 8 --num-executors 16 --driver-memory 1G
+ * org.gbif.pipelines.labs.indexing.EsCoGroupNestedPipeline --master yarn --deploy-mode cluster
+ * --executor-memory 12G --executor-cores 8 --num-executors 16 --driver-memory 1G
  * /home/crap/lib/labs-1.1-SNAPSHOT-shaded.jar --datasetId=0645ccdb-e001-4ab0-9729-51f1755e007e
  * --attempt=1 --runner=SparkRunner
  * --defaultTargetDirectory=hdfs://ha-nn/data/ingest/0645ccdb-e001-4ab0-9729-51f1755e007e/1/
@@ -64,14 +60,16 @@ public class EsCoGroupNestedPipeline {
     LOG.info("Starting indexing pipeline");
 
     LOG.info("Added step 0: Creating pipeline options");
-    final TupleTag<InterpretedExtendedRecord> interRecordTag = new TupleTag<InterpretedExtendedRecord>() {};
+    final TupleTag<InterpretedExtendedRecord> interRecordTag =
+        new TupleTag<InterpretedExtendedRecord>() {};
     final TupleTag<TemporalRecord> temporalTag = new TupleTag<TemporalRecord>() {};
     final TupleTag<LocationRecord> locationTag = new TupleTag<LocationRecord>() {};
     final TupleTag<TaxonRecord> taxonomyTag = new TupleTag<TaxonRecord>() {};
     final TupleTag<MultimediaRecord> multimediaTag = new TupleTag<MultimediaRecord>() {};
     final TupleTag<ExtendedRecord> extendedRecordTag = new TupleTag<ExtendedRecord>() {};
 
-    final String pathIn = options.getInputPath()+options.getDatasetId()+"/"+options.getAttempt()+"/";
+    final String pathIn =
+        options.getInputPath() + options.getDatasetId() + "/" + options.getAttempt() + "/";
     final String pathOut = options.getTargetPath();
 
     final String pathCommon = pathIn + "common/interpreted*.avro";
@@ -82,84 +80,112 @@ public class EsCoGroupNestedPipeline {
     final String pathExtended = pathIn + "verbatim*.avro";
 
     Pipeline p = Pipeline.create(options);
-    Coders.registerAvroCoders(p, InterpretedExtendedRecord.class, LocationRecord.class, TemporalRecord.class);
+    Coders.registerAvroCoders(
+        p, InterpretedExtendedRecord.class, LocationRecord.class, TemporalRecord.class);
     Coders.registerAvroCoders(p, TaxonRecord.class, MultimediaRecord.class, ExtendedRecord.class);
 
     LOG.info("Adding step 1: Reading interpreted avro files");
     PCollection<KV<String, ExtendedRecord>> extendedRecordCollection =
-      p.apply("Read RAW", AvroIO.read(ExtendedRecord.class).from(pathExtended))
-        .apply("Map RAW", MapElements.into(new TypeDescriptor<KV<String, ExtendedRecord>>() {})
-          .via((ExtendedRecord ex) -> KV.of(ex.getId(), ex)));
+        p.apply("Read RAW", AvroIO.read(ExtendedRecord.class).from(pathExtended))
+            .apply(
+                "Map RAW",
+                MapElements.into(new TypeDescriptor<KV<String, ExtendedRecord>>() {})
+                    .via((ExtendedRecord ex) -> KV.of(ex.getId(), ex)));
 
     PCollection<KV<String, InterpretedExtendedRecord>> interpretedRecordCollection =
-      p.apply("Read COMMON", AvroIO.read(InterpretedExtendedRecord.class).from(pathCommon))
-        .apply("Map COMMON", MapElements.into(new TypeDescriptor<KV<String, InterpretedExtendedRecord>>() {})
-          .via((InterpretedExtendedRecord ex) -> KV.of(ex.getId(), ex)));
+        p.apply("Read COMMON", AvroIO.read(InterpretedExtendedRecord.class).from(pathCommon))
+            .apply(
+                "Map COMMON",
+                MapElements.into(new TypeDescriptor<KV<String, InterpretedExtendedRecord>>() {})
+                    .via((InterpretedExtendedRecord ex) -> KV.of(ex.getId(), ex)));
 
     PCollection<KV<String, TemporalRecord>> temporalCollection =
-      p.apply("Read TEMPORAL", AvroIO.read(TemporalRecord.class).from(pathTemporal))
-        .apply("Map TEMPORAL", MapElements.into(new TypeDescriptor<KV<String, TemporalRecord>>() {})
-          .via((TemporalRecord t) -> KV.of(t.getId(), t)));
+        p.apply("Read TEMPORAL", AvroIO.read(TemporalRecord.class).from(pathTemporal))
+            .apply(
+                "Map TEMPORAL",
+                MapElements.into(new TypeDescriptor<KV<String, TemporalRecord>>() {})
+                    .via((TemporalRecord t) -> KV.of(t.getId(), t)));
 
     PCollection<KV<String, LocationRecord>> locationCollection =
-      p.apply("Read LOCATION", AvroIO.read(LocationRecord.class).from(pathLocation))
-        .apply("Map LOCATION", MapElements.into(new TypeDescriptor<KV<String, LocationRecord>>() {})
-          .via((LocationRecord l) -> KV.of(l.getId(), l)));
+        p.apply("Read LOCATION", AvroIO.read(LocationRecord.class).from(pathLocation))
+            .apply(
+                "Map LOCATION",
+                MapElements.into(new TypeDescriptor<KV<String, LocationRecord>>() {})
+                    .via((LocationRecord l) -> KV.of(l.getId(), l)));
 
     PCollection<KV<String, TaxonRecord>> taxonomyCollection =
-      p.apply("Read TAXONOMY", AvroIO.read(TaxonRecord.class).from(pathTaxonomy))
-        .apply("Map TAXONOMY", MapElements.into(new TypeDescriptor<KV<String, TaxonRecord>>() {})
-          .via((TaxonRecord t) -> KV.of(t.getId(), t)));
+        p.apply("Read TAXONOMY", AvroIO.read(TaxonRecord.class).from(pathTaxonomy))
+            .apply(
+                "Map TAXONOMY",
+                MapElements.into(new TypeDescriptor<KV<String, TaxonRecord>>() {})
+                    .via((TaxonRecord t) -> KV.of(t.getId(), t)));
 
     PCollection<KV<String, MultimediaRecord>> multimediaCollection =
-      p.apply("Read MULTIMEDIA", AvroIO.read(MultimediaRecord.class).from(pathMultimedia))
-        .apply("Map MULTIMEDIA", MapElements.into(new TypeDescriptor<KV<String, MultimediaRecord>>() {})
-          .via((MultimediaRecord m) -> KV.of(m.getId(), m)));
+        p.apply("Read MULTIMEDIA", AvroIO.read(MultimediaRecord.class).from(pathMultimedia))
+            .apply(
+                "Map MULTIMEDIA",
+                MapElements.into(new TypeDescriptor<KV<String, MultimediaRecord>>() {})
+                    .via((MultimediaRecord m) -> KV.of(m.getId(), m)));
 
     LOG.info("Adding step 2: Grouping by id/occurrenceID key");
     PCollection<KV<String, CoGbkResult>> groupedCollection =
-      KeyedPCollectionTuple.of(interRecordTag, interpretedRecordCollection)
-        .and(temporalTag, temporalCollection)
-        .and(locationTag, locationCollection)
-        .and(taxonomyTag, taxonomyCollection)
-        .and(multimediaTag, multimediaCollection)
-        .and(extendedRecordTag, extendedRecordCollection)
-        .apply(CoGroupByKey.create());
+        KeyedPCollectionTuple.of(interRecordTag, interpretedRecordCollection)
+            .and(temporalTag, temporalCollection)
+            .and(locationTag, locationCollection)
+            .and(taxonomyTag, taxonomyCollection)
+            .and(multimediaTag, multimediaCollection)
+            .and(extendedRecordTag, extendedRecordCollection)
+            .apply(CoGroupByKey.create());
 
     LOG.info("Adding step 3: Converting to a flat object");
-    PCollection<String> resultCollection = groupedCollection.apply("Merge objects", ParDo.of(
-      new DoFn<KV<String, CoGbkResult>, String>() {
-        @ProcessElement
-        public void processElement(ProcessContext c) {
-          CoGbkResult value = c.element().getValue();
-          String key = c.element().getKey();
-          InterpretedExtendedRecord interRecord = value.getOnly(interRecordTag, InterpretedExtendedRecord.newBuilder().setId(key).build());
-          TemporalRecord temporal = value.getOnly(temporalTag, TemporalRecord.newBuilder().setId(key).build());
-          LocationRecord location = value.getOnly(locationTag, LocationRecord.newBuilder().setId(key).build());
-          TaxonRecord taxon = value.getOnly(taxonomyTag, TaxonRecord.newBuilder().setId(key).build());
-          MultimediaRecord multimedia = value.getOnly(multimediaTag, MultimediaRecord.newBuilder().setId(key).build());
-          ExtendedRecord extendedRecord = value.getOnly(extendedRecordTag, ExtendedRecord.newBuilder().setId(key).build());
-          c.output(toIndex(interRecord, temporal, location, taxon, multimedia, extendedRecord));
-        }
-      }
-    ));
+    PCollection<String> resultCollection =
+        groupedCollection.apply(
+            "Merge objects",
+            ParDo.of(
+                new DoFn<KV<String, CoGbkResult>, String>() {
+                  @ProcessElement
+                  public void processElement(ProcessContext c) {
+                    CoGbkResult value = c.element().getValue();
+                    String key = c.element().getKey();
+                    InterpretedExtendedRecord interRecord =
+                        value.getOnly(
+                            interRecordTag,
+                            InterpretedExtendedRecord.newBuilder().setId(key).build());
+                    TemporalRecord temporal =
+                        value.getOnly(temporalTag, TemporalRecord.newBuilder().setId(key).build());
+                    LocationRecord location =
+                        value.getOnly(locationTag, LocationRecord.newBuilder().setId(key).build());
+                    TaxonRecord taxon =
+                        value.getOnly(taxonomyTag, TaxonRecord.newBuilder().setId(key).build());
+                    MultimediaRecord multimedia =
+                        value.getOnly(
+                            multimediaTag, MultimediaRecord.newBuilder().setId(key).build());
+                    ExtendedRecord extendedRecord =
+                        value.getOnly(
+                            extendedRecordTag, ExtendedRecord.newBuilder().setId(key).build());
+                    c.output(
+                        toIndex(
+                            interRecord, temporal, location, taxon, multimedia, extendedRecord));
+                  }
+                }));
 
     LOG.info("Adding step 4: Text Json Dump");
 
     resultCollection.apply(
-      TextIO.write()
-        .to(pathOut+options.getDatasetId()+".json").withNumShards(1));
+        TextIO.write().to(pathOut + options.getDatasetId() + ".json").withNumShards(1));
 
     LOG.info("Run the pipeline");
     p.run().waitUntilFinish();
-
   }
 
-  /**
-   * Assemble main object json with nested structure
-   */
-  private static String toIndex(InterpretedExtendedRecord interRecord, TemporalRecord temporal, LocationRecord location,
-                                TaxonRecord taxon, MultimediaRecord multimedia, ExtendedRecord extendedRecord) {
+  /** Assemble main object json with nested structure */
+  private static String toIndex(
+      InterpretedExtendedRecord interRecord,
+      TemporalRecord temporal,
+      LocationRecord location,
+      TaxonRecord taxon,
+      MultimediaRecord multimedia,
+      ExtendedRecord extendedRecord) {
 
     StringBuilder builder = new StringBuilder();
     BiConsumer<String, String> f = (k, v) -> builder.append("\"").append(k).append("\":").append(v);
