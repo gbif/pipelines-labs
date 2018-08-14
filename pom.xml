@@ -94,7 +94,7 @@
     <profile>
       <id>direct-runner</id>
       <activation>
-        <activeByDefault>false</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
         <dependency>
@@ -361,6 +361,12 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
       <version>${hive.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-exec</artifactId>
+      <version>${hive.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <!---->
     <dependency>

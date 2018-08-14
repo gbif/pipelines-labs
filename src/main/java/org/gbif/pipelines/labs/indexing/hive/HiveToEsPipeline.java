@@ -6,6 +6,7 @@ import com.google.common.base.Throwables;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO;
 import org.apache.beam.sdk.io.hcatalog.HCatalogIO;
+import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -18,10 +19,11 @@ import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.hive.hcatalog.data.schema.HCatSchemaUtils;
 import org.apache.thrift.TException;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.pipelines.config.EsProcessingPipelineOptions;
+import org.gbif.pipelines.config.base.EsOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -29,27 +31,48 @@ import java.util.stream.Collectors;
 
 public class HiveToEsPipeline {
 
+    private static final String GBIFID = "gbifid";
+
+    interface HiveToEsOptions extends EsOptions {
+
+        @Description("Uri to hive Metastore, e.g.: thrift://hivesever2:9083")
+        String getMetastoreUris();
+        void setMetastoreUris(String metastoreUris);
+
+
+        @Description("Hive Database")
+        String getHiveDB();
+        void setHiveDB(String hiveDB);
+
+        @Description("Hive Table")
+        String getHiveTable();
+        void setHiveTable(String hiveTable);
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(HiveToEsPipeline.class);
 
 
     public static void main(String[] args) {
-        EsProcessingPipelineOptions options =
-                PipelineOptionsFactory.fromArgs(args).create().as(EsProcessingPipelineOptions.class);
+        HiveToEsOptions options =
+                PipelineOptionsFactory.fromArgs(args).withValidation().as(HiveToEsOptions.class);
         Pipeline pipeline = Pipeline.create(options);
         Map<String, String> configProperties = new HashMap<>();
-        configProperties.put(HiveConf.ConfVars.METASTOREURIS.varname,"thrift://metastore-host:port");
-        HCatSchemaRecordDescriptor schemaRecordDescriptor = readHiveSchema("dev", "occurrence_hds","");
+        configProperties.put(HiveConf.ConfVars.METASTOREURIS.varname, options.getMetastoreUris());
+        HCatSchemaRecordDescriptor schemaRecordDescriptor = readHiveSchema(options.getHiveDB(),
+                options.getHiveTable(), options.getMetastoreUris());
         pipeline
                  .apply(HCatalogIO.read()
                         .withConfigProperties(configProperties)
-                        .withDatabase("dev") //optional, assumes default if none specified
-                        .withTable("occurrence_hdfs"))
+                        .withDatabase(options.getHiveDB()) //optional, assumes default if none specified
+                        .withTable(options.getHiveTable()))
                 .apply("Converting to JSON", ParDo.of(new RecordToEs(new HCatRecordToEsDoc(schemaRecordDescriptor))))
-                .apply(ElasticsearchIO.write()
+                .apply("Indexing to ElasticSearch", ElasticsearchIO.write()
                         .withConnectionConfiguration(ElasticsearchIO.ConnectionConfiguration.create(options.getESHosts(),
                                 options.getESIndexName(),
-                                options.getESIndexName()))
-                        .withMaxBatchSize(options.getESMaxBatchSize()));
+                                "occurrence"))
+                        .withMaxBatchSize(options.getESMaxBatchSize())
+                        .withIdFn(node -> node.get(GBIFID).asText()));
+        pipeline.run();
     }
 
     private static HCatSchemaRecordDescriptor readHiveSchema(String dataBase, String tableName, String metastoreUri) {
@@ -62,6 +85,19 @@ public class HiveToEsPipeline {
         } catch(TException | HCatException ex) {
             LOG.error("Error reading table schema", ex);
             throw Throwables.propagate(ex);
+        }
+    }
+
+    static class LoggingFn extends DoFn<String,String> {
+        // Instantiate Logger.
+        // Suggestion: As shown, specify the class name of the containing class
+        // (WordCount).
+        private static final Logger LOG = LoggerFactory.getLogger(LoggingFn.class);
+
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            System.out.println(c.element());
+
         }
     }
 
@@ -87,9 +123,24 @@ public class HiveToEsPipeline {
         }
     }
 
-    static class HCatRecordToEsDoc {
+    static class HCatRecordToEsDoc implements Serializable  {
 
-        private static final Map<OccurrenceSearchParameter,String> SEARCH_PARAMETER_FIELD_MAP = Arrays.stream(OccurrenceSearchParameter.values()).collect(Collectors.toMap(Function.identity(), param -> param.name().replace("_","").toLowerCase()));
+        private static final Map<OccurrenceSearchParameter,String> SEARCH_PARAMETER_FIELD_MAP = Arrays.stream(OccurrenceSearchParameter.values())
+                .filter(searchParameter -> searchParameter != OccurrenceSearchParameter.GEOMETRY) //It is not a stored field
+                .collect(Collectors.toMap(Function.identity(), HCatRecordToEsDoc::hiveField));
+
+        private static String hiveField(OccurrenceSearchParameter searchParameter) {
+            if (searchParameter == OccurrenceSearchParameter.PUBLISHING_ORG) {
+                return "publishingorgkey";
+            }
+            if (searchParameter == OccurrenceSearchParameter.COUNTRY) {
+                return "countrycode";
+            }
+            if (searchParameter == OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE) {
+                return "hasgeospatialissues";
+            }
+            return searchParameter.name().replace("_","").toLowerCase();
+        }
 
         private final HCatSchemaRecordDescriptor schema;
 
@@ -101,15 +152,15 @@ public class HiveToEsPipeline {
         private Object searchFieldValue(OccurrenceSearchParameter searchParameter, HCatRecord record) {
             try {
                 if (Date.class.isAssignableFrom(searchParameter.type())) {
-                    return Optional.ofNullable(record.getDecimal(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema()))
-                            .map(value -> new SimpleDateFormat("yyyy-MM-dd").format(new Date(value.longValue())))
+                    return Optional.ofNullable(record.getLong(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema()))
+                            .map(value -> new SimpleDateFormat("yyyy-MM-dd").format(new Date(value)))
                             .orElse(null);
                 }
                 if (OccurrenceSearchParameter.ISSUE == searchParameter || OccurrenceSearchParameter.MEDIA_TYPE == searchParameter) {
                    record.getList(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema());
                 }
                 return record.get(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema());
-            } catch(HCatException ex) {
+            } catch(Exception ex) {
                 LOG.error("Error reading field {}", searchParameter, ex);
                 throw Throwables.propagate(ex);
             }
@@ -129,14 +180,23 @@ public class HiveToEsPipeline {
         }
 
         private Map<String,Object> convert(HCatRecord record) {
-            Map<String,Object> searchFields = new HashMap<>();
-            SEARCH_PARAMETER_FIELD_MAP.forEach((key, value) -> searchFields.put(value, searchFieldValue(key, record)));
-            searchFields.put("verbatim", verbatimFields(record));
-            return searchFields;
+            try {
+                Map<String,Object> esDoc = new HashMap<>();
+                esDoc.put(GBIFID, record.get(GBIFID, schema.getHCatSchema()));
+                SEARCH_PARAMETER_FIELD_MAP.forEach((key, value) -> esDoc.put(value, searchFieldValue(key, record)));
+                if((Boolean)esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.HAS_COORDINATE))) {
+                    esDoc.put("coordinate", esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LATITUDE)) + "," + esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE)));
+                }
+                esDoc.put("verbatim", verbatimFields(record));
+                return esDoc;
+            } catch (Exception ex) {
+                LOG.error("Error building ES document", ex);
+                throw Throwables.propagate(ex);
+            }
         }
     }
 
-    static class HCatSchemaRecordDescriptor {
+    static class HCatSchemaRecordDescriptor implements Serializable {
 
         private final HCatSchema hCatSchema;
 
