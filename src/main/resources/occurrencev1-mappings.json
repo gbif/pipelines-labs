@@ -1,0 +1,44 @@
+{
+  "mappings" : {
+    "occurrence" : {
+      "properties" : {
+        "coordinate" : { "type" : "geo_point" },
+        "eventdate" : { "type" : "date" },
+        "lastinterpreted" : { "type" : "date" },
+        "gbifid" : {"enabled" : false},
+        "datasetkey" : { "type" : "keyword" },
+        "collectioncode" : { "type" : "keyword" },
+        "catalognumber" : { "type" : "keyword" },
+        "basisofrecord" : { "type" : "keyword" },
+        "institutioncode" : { "type" : "keyword" },
+        "issue" : { "type" : "keyword" },
+        "license" : { "type" : "keyword" },
+        "protocol" : { "type" : "keyword" },
+        "publishingcountry" : { "type" : "keyword" },
+        "publishingorgkey" : { "type" : "keyword" },
+        "typestatus" : { "type" : "keyword" },
+        "organismid" : { "type" : "keyword" },
+        "occurrenceid" : { "type" : "keyword" },
+        "continent" : { "type" : "keyword" },
+        "recordnumber" : { "type" : "keyword" },
+        "recordedby" : { "type" : "keyword" },
+        "mediatype" : { "type" : "keyword" },
+        "eventid" : { "type" : "keyword" },
+        "parenteventid" : { "type" : "keyword" },
+        "samplingprotocol" : { "type" : "keyword" },
+        "establishmentmeans" : { "type" : "keyword" },
+        "networkkey" : { "type" : "keyword" },
+        "installationkey" : { "type" : "keyword" },
+        "taxonkey" : { "type" : "keyword"},
+        "kingdomkey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "phylumkey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "classkey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "orderkey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "familykey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "genuskey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "subgenuskey" : { "type" : "keyword", "copy_to": "taxonkey" },
+        "specieskey" : { "type" : "keyword", "copy_to": "taxonkey" }
+      }
+    }
+  }
+}

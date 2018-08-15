@@ -64,6 +64,7 @@
 
     <!-- GBIF libraries -->
     <gbif-pipeline.version>1.1-SNAPSHOT</gbif-pipeline.version>
+    <gbif-api.version>0.69</gbif-api.version>
 
     <apache.beam.version>2.6.0</apache.beam.version>
     <avro.version>1.8.2</avro.version>
@@ -285,6 +286,11 @@
 
   <dependencies>
     <!--GBIF-->
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-api</artifactId>
+      <version>${gbif-api.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.gbif.pipelines</groupId>
       <artifactId>core</artifactId>

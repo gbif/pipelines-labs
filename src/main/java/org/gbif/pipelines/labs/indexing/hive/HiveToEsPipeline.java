@@ -170,7 +170,8 @@ public class HiveToEsPipeline {
             Map<String,Object> verbatimFields = new HashMap<>();
             schema.getVerbatimFields().forEach(field -> {
                 try {
-                    verbatimFields.put(field,record.getString(field, schema.getHCatSchema()));
+                    //substring(2) removes the prefix v_
+                    verbatimFields.put(field.substring(2),record.getString(field, schema.getHCatSchema()));
                 } catch (HCatException ex){
                     LOG.error("Error reading field {}", field, ex);
                     throw Throwables.propagate(ex);
