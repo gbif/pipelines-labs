@@ -3,6 +3,7 @@ package org.gbif.pipelines.labs.indexing.hive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO;
 import org.apache.beam.sdk.io.hcatalog.HCatalogIO;
@@ -129,6 +130,8 @@ public class HiveToEsPipeline {
                 .filter(searchParameter -> searchParameter != OccurrenceSearchParameter.GEOMETRY) //It is not a stored field
                 .collect(Collectors.toMap(Function.identity(), HCatRecordToEsDoc::hiveField));
 
+        private static final Set<String> ADDITIONAL_FIELDS = Sets.newHashSet("typifiedname", "coordinateprecision", "depthaccuracy", "elevationaccuracy", "lastcrawled", "lastinterpreted");
+
         private static String hiveField(OccurrenceSearchParameter searchParameter) {
             if (searchParameter == OccurrenceSearchParameter.PUBLISHING_ORG) {
                 return "publishingorgkey";
@@ -145,7 +148,7 @@ public class HiveToEsPipeline {
         private final HCatSchemaRecordDescriptor schema;
 
 
-        public HCatRecordToEsDoc(HCatSchemaRecordDescriptor schema) {
+        HCatRecordToEsDoc(HCatSchemaRecordDescriptor schema) {
             this.schema = schema;
         }
 
@@ -189,6 +192,18 @@ public class HiveToEsPipeline {
                     esDoc.put("coordinate", esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LATITUDE)) + "," + esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE)));
                 }
                 esDoc.put("verbatim", verbatimFields(record));
+                ADDITIONAL_FIELDS.forEach(field -> {
+                    try {
+                        if (field == "lastinterpreted" || field  == "lastcrawled") {
+                            esDoc.put(field, new SimpleDateFormat("yyyy-MM-dd").format(new Date(record.getLong(field, schema.getHCatSchema()))));
+                        } else {
+                            esDoc.put(field, record.get(field, schema.getHCatSchema()));
+                        }
+                    } catch(HCatException ex) {
+                      throw Throwables.propagate(ex);
+                    }
+                });
+
                 return esDoc;
             } catch (Exception ex) {
                 LOG.error("Error building ES document", ex);
