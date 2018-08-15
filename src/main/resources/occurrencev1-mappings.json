@@ -1,6 +1,16 @@
 {
   "mappings" : {
     "occurrence" : {
+      "dynamic_templates": [
+        {
+          "verbatim_fields": {
+            "path_match": "verbatim.*",
+            "mapping": {
+              "type": "text"
+            }
+          }
+        }
+      ],
       "properties" : {
         "coordinate" : { "type" : "geo_point" },
         "eventdate" : { "type" : "date" },
