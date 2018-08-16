@@ -63,7 +63,7 @@
     <jdkLevel>1.8</jdkLevel>
 
     <!-- GBIF libraries -->
-    <gbif-pipeline.version>1.1-SNAPSHOT</gbif-pipeline.version>
+    <gbif-pipeline.version>1.2-SNAPSHOT</gbif-pipeline.version>
     <gbif-api.version>0.69</gbif-api.version>
 
     <apache.beam.version>2.6.0</apache.beam.version>
