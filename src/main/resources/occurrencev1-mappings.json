@@ -17,6 +17,7 @@
         "lastinterpreted" : { "type" : "date" },
         "lastcrawled" : { "type" : "date", "index" : false },
         "lastparsed" : { "type" : "date", "index" : false },
+        "fragmentcreated" : { "type" : "date", "index" : false },
         "gbifid" : {"type" : "keyword", "store" : false, "index" : false },
         "datasetkey" : { "type" : "keyword" },
         "collectioncode" : { "type" : "keyword" },

@@ -1,5 +1,6 @@
 package org.gbif.pipelines.labs.mapper;
 
+import org.apache.avro.specific.SpecificData;
 import org.gbif.pipelines.io.avro.EventDate;
 import org.gbif.pipelines.io.avro.ExtendedOccurrence;
 import org.gbif.pipelines.io.avro.ExtendedOccurrence.Builder;

@@ -126,24 +126,6 @@ public class HiveToEsPipeline {
 
     static class HCatRecordToEsDoc implements Serializable  {
 
-        private static final Map<OccurrenceSearchParameter,String> SEARCH_PARAMETER_FIELD_MAP = Arrays.stream(OccurrenceSearchParameter.values())
-                .filter(searchParameter -> searchParameter != OccurrenceSearchParameter.GEOMETRY) //It is not a stored field
-                .collect(Collectors.toMap(Function.identity(), HCatRecordToEsDoc::hiveField));
-
-        private static final Set<String> ADDITIONAL_FIELDS = Sets.newHashSet("typifiedname", "coordinateprecision", "depthaccuracy", "elevationaccuracy", "lastcrawled", "lastinterpreted");
-
-        private static String hiveField(OccurrenceSearchParameter searchParameter) {
-            if (searchParameter == OccurrenceSearchParameter.PUBLISHING_ORG) {
-                return "publishingorgkey";
-            }
-            if (searchParameter == OccurrenceSearchParameter.COUNTRY) {
-                return "countrycode";
-            }
-            if (searchParameter == OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE) {
-                return "hasgeospatialissues";
-            }
-            return searchParameter.name().replace("_","").toLowerCase();
-        }
 
         private final HCatSchemaRecordDescriptor schema;
 
@@ -152,22 +134,6 @@ public class HiveToEsPipeline {
             this.schema = schema;
         }
 
-        private Object searchFieldValue(OccurrenceSearchParameter searchParameter, HCatRecord record) {
-            try {
-                if (Date.class.isAssignableFrom(searchParameter.type())) {
-                    return Optional.ofNullable(record.getLong(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema()))
-                            .map(value -> new SimpleDateFormat("yyyy-MM-dd").format(new Date(value)))
-                            .orElse(null);
-                }
-                if (OccurrenceSearchParameter.ISSUE == searchParameter || OccurrenceSearchParameter.MEDIA_TYPE == searchParameter) {
-                   record.getList(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema());
-                }
-                return record.get(SEARCH_PARAMETER_FIELD_MAP.get(searchParameter), schema.getHCatSchema());
-            } catch(Exception ex) {
-                LOG.error("Error reading field {}", searchParameter, ex);
-                throw Throwables.propagate(ex);
-            }
-        }
 
         private Map<String,Object> verbatimFields(HCatRecord record) {
             Map<String,Object> verbatimFields = new HashMap<>();
@@ -183,26 +149,37 @@ public class HiveToEsPipeline {
             return verbatimFields;
         }
 
+        private Map<String,Object> interpretedFields(HCatRecord record) {
+            Map<String,Object> interpretedFields = new HashMap<>();
+            schema.getInterpretedFields().forEach(field -> {
+                try {
+                    //substring(2) removes the prefix v_
+                    if (field.equals("lastinterpreted") || field.equals("lastcrawled")
+                            || field.equals("fragmentcreated") || field.equals("eventdate")) {
+                        interpretedFields.put(field, Optional.ofNullable(record.getLong(field, schema.getHCatSchema()))
+                                .map(value -> new SimpleDateFormat("yyyy-MM-dd").format(new Date(value)))
+                                .orElse(null));
+                    } else if (field.equals("mediatype") || field.equals("issue")) {
+                        interpretedFields.put(field, record.getList(field, schema.getHCatSchema()));
+                    } else {
+                        interpretedFields.put(field, record.get(field, schema.getHCatSchema()));
+                    }
+                } catch (HCatException ex){
+                    LOG.error("Error reading field {}", field, ex);
+                    throw Throwables.propagate(ex);
+                }
+            });
+            return interpretedFields;
+        }
+
         private Map<String,Object> convert(HCatRecord record) {
             try {
                 Map<String,Object> esDoc = new HashMap<>();
-                esDoc.put(GBIFID, record.get(GBIFID, schema.getHCatSchema()));
-                SEARCH_PARAMETER_FIELD_MAP.forEach((key, value) -> esDoc.put(value, searchFieldValue(key, record)));
-                if((Boolean)esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.HAS_COORDINATE))) {
-                    esDoc.put("coordinate", esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LATITUDE)) + "," + esDoc.get(SEARCH_PARAMETER_FIELD_MAP.get(OccurrenceSearchParameter.DECIMAL_LONGITUDE)));
+                esDoc.putAll(interpretedFields(record));
+                if((Boolean)esDoc.get("hascoordinate")) {
+                    esDoc.put("coordinate", esDoc.get("decimallatitude") + "," + esDoc.get("decimallongitude"));
                 }
                 esDoc.put("verbatim", verbatimFields(record));
-                ADDITIONAL_FIELDS.forEach(field -> {
-                    try {
-                        if (field == "lastinterpreted" || field  == "lastcrawled") {
-                            esDoc.put(field, new SimpleDateFormat("yyyy-MM-dd").format(new Date(record.getLong(field, schema.getHCatSchema()))));
-                        } else {
-                            esDoc.put(field, record.get(field, schema.getHCatSchema()));
-                        }
-                    } catch(HCatException ex) {
-                      throw Throwables.propagate(ex);
-                    }
-                });
 
                 return esDoc;
             } catch (Exception ex) {
@@ -218,10 +195,15 @@ public class HiveToEsPipeline {
 
         private final List<String> verbatimFields;
 
+        private final List<String> interpretedFields;
+
         HCatSchemaRecordDescriptor(HCatSchema hCatSchema) {
             this.hCatSchema = hCatSchema;
-            verbatimFields = hCatSchema.getFieldNames().stream()
-                                .filter(field -> field.startsWith("v_")).collect(Collectors.toList());
+
+            Map<Boolean, List<String>> fields = hCatSchema.getFieldNames().stream()
+                                .collect(Collectors.partitioningBy(field -> field.startsWith("v_")));
+            this.verbatimFields = fields.get(true);
+            this.interpretedFields = fields.get(false);
         }
 
         public HCatSchema getHCatSchema() {
@@ -230,6 +212,10 @@ public class HiveToEsPipeline {
 
         public List<String> getVerbatimFields() {
             return verbatimFields;
+        }
+
+        public List<String> getInterpretedFields() {
+            return interpretedFields;
         }
     }
 }
