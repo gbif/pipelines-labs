@@ -43,14 +43,14 @@
         "networkkey" : { "type" : "keyword" },
         "installationkey" : { "type" : "keyword" },
         "taxonkey" : { "type" : "keyword"},
-        "kingdomkey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "phylumkey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "classkey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "orderkey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "familykey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "genuskey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "subgenuskey" : { "type" : "keyword", "copy_to": "taxonkey" },
-        "specieskey" : { "type" : "keyword", "copy_to": "taxonkey" }
+        "kingdomkey" : { "type" : "keyword"},
+        "phylumkey" : { "type" : "keyword"},
+        "classkey" : { "type" : "keyword"},
+        "orderkey" : { "type" : "keyword"},
+        "familykey" : { "type" : "keyword"},
+        "genuskey" : { "type" : "keyword"},
+        "subgenuskey" : { "type" : "keyword"},
+        "specieskey" : { "type" : "keyword"}
       }
     }
   }

@@ -3,6 +3,7 @@ package org.gbif.pipelines.labs.indexing.hive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO;
@@ -149,6 +150,21 @@ public class HiveToEsPipeline {
             return verbatimFields;
         }
 
+
+        private Set<Object> taxonKey(Map<String,Object> esDoc) {
+            Set<Object> taxonKey = Sets.newHashSet(
+                    esDoc.get("kingdomkey"),
+                    esDoc.get("phylumkey"),
+                    esDoc.get("classkey"),
+                    esDoc.get("orderkey"),
+                    esDoc.get("familykey"),
+                    esDoc.get("genuskey"),
+                    esDoc.get("subgenuskey"),
+                    esDoc.get("specieskey"));
+            taxonKey.remove(null);
+            return taxonKey;
+        }
+
         private Map<String,Object> interpretedFields(HCatRecord record) {
             Map<String,Object> interpretedFields = new HashMap<>();
             schema.getInterpretedFields().forEach(field -> {
@@ -169,13 +185,13 @@ public class HiveToEsPipeline {
                     throw Throwables.propagate(ex);
                 }
             });
+            interpretedFields.put("taxonkey", taxonKey(interpretedFields));
             return interpretedFields;
         }
 
         private Map<String,Object> convert(HCatRecord record) {
             try {
-                Map<String,Object> esDoc = new HashMap<>();
-                esDoc.putAll(interpretedFields(record));
+                Map<String,Object> esDoc = new HashMap<>(interpretedFields(record));
                 if((Boolean)esDoc.get("hascoordinate")) {
                     esDoc.put("coordinate", esDoc.get("decimallatitude") + "," + esDoc.get("decimallongitude"));
                 }
