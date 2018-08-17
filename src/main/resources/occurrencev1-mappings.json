@@ -1,4 +1,9 @@
 {
+  "settings" : {
+    "mapper" : {
+      "dynamic" : false
+    }
+  },
   "mappings" : {
     "occurrence" : {
       "dynamic_templates": [
