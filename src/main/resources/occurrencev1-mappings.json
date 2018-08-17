@@ -44,7 +44,7 @@
         "establishmentmeans" : { "type" : "keyword" },
         "networkkey" : { "type" : "keyword" },
         "installationkey" : { "type" : "keyword" },
-        "taxakey" : { "type" : "keyword"},
+        "taxakey" : { "type" : "keyword", "store" : false},
         "taxonkey" : { "type" : "keyword"},
         "kingdomkey" : { "type" : "keyword"},
         "phylumkey" : { "type" : "keyword"},
