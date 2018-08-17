@@ -141,7 +141,7 @@ public class HiveToEsPipeline {
             schema.getVerbatimFields().forEach(field -> {
                 try {
                     //substring(2) removes the prefix v_
-                    verbatimFields.put(field.substring(2),record.getString(field, schema.getHCatSchema()));
+                    putIfNotNull(verbatimFields,field.substring(2),record.getString(field, schema.getHCatSchema()));
                 } catch (HCatException ex){
                     LOG.error("Error reading field {}", field, ex);
                     throw Throwables.propagate(ex);
@@ -165,20 +165,28 @@ public class HiveToEsPipeline {
             return taxonKey;
         }
 
+        private static void putIfNotNull(Map<String,Object> map, String key, Object value) {
+          if (Objects.nonNull(value)) {
+              map.put(key, value);
+          }
+        }
+
         private Map<String,Object> interpretedFields(HCatRecord record) {
             Map<String,Object> interpretedFields = new HashMap<>();
             schema.getInterpretedFields().forEach(field -> {
                 try {
                     //substring(2) removes the prefix v_
                     if (field.equals("lastinterpreted") || field.equals("lastcrawled")
-                            || field.equals("fragmentcreated") || field.equals("eventdate")) {
-                        interpretedFields.put(field, Optional.ofNullable(record.getLong(field, schema.getHCatSchema()))
+                            || field.equals("fragmentcreated") || field.equals("eventdate")
+                            || field.equals("lastparsed")) {
+                        putIfNotNull(interpretedFields, field, Optional.ofNullable(record.getLong(field, schema.getHCatSchema()))
                                 .map(value -> new SimpleDateFormat("yyyy-MM-dd").format(new Date(value)))
                                 .orElse(null));
                     } else if (field.equals("mediatype") || field.equals("issue")) {
-                        interpretedFields.put(field, record.getList(field, schema.getHCatSchema()));
+                        putIfNotNull(interpretedFields, field, record.getList(field, schema.getHCatSchema()));
+
                     } else {
-                        interpretedFields.put(field, record.get(field, schema.getHCatSchema()));
+                        putIfNotNull(interpretedFields, field, record.get(field, schema.getHCatSchema()));
                     }
                 } catch (HCatException ex){
                     LOG.error("Error reading field {}", field, ex);
@@ -196,7 +204,6 @@ public class HiveToEsPipeline {
                     esDoc.put("coordinate", esDoc.get("decimallatitude") + "," + esDoc.get("decimallongitude"));
                 }
                 esDoc.put("verbatim", verbatimFields(record));
-
                 return esDoc;
             } catch (Exception ex) {
                 LOG.error("Error building ES document", ex);
