@@ -190,7 +190,7 @@ public class HiveToEsPipeline {
                     throw Throwables.propagate(ex);
                 }
             });
-            interpretedFields.put("taxaKey", taxaKey(interpretedFields));
+            interpretedFields.put("taxakey", taxaKey(interpretedFields));
             return interpretedFields;
         }
 
