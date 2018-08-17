@@ -3,7 +3,6 @@ package org.gbif.pipelines.labs.indexing.hive;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO;
@@ -20,7 +19,6 @@ import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.hive.hcatalog.data.schema.HCatSchemaUtils;
 import org.apache.thrift.TException;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.pipelines.config.base.EsOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HiveToEsPipeline {
@@ -108,7 +105,7 @@ public class HiveToEsPipeline {
         private final ObjectMapper mapper = new ObjectMapper();
         private final HCatRecordToEsDoc hCatRecordToEsDoc;
 
-        public RecordToEs(HCatRecordToEsDoc hCatRecordToEsDoc) {
+        RecordToEs(HCatRecordToEsDoc hCatRecordToEsDoc) {
             mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
             this.hCatRecordToEsDoc = hCatRecordToEsDoc;
         }
@@ -151,8 +148,8 @@ public class HiveToEsPipeline {
         }
 
 
-        private Set<Object> taxonKey(Map<String,Object> esDoc) {
-            Set<Object> taxonKey = Sets.newHashSet(
+        private Set<Object> taxaKey(Map<String,Object> esDoc) {
+            Set<Object> taxaKey = Sets.newHashSet(
                     esDoc.get("kingdomkey"),
                     esDoc.get("phylumkey"),
                     esDoc.get("classkey"),
@@ -161,8 +158,8 @@ public class HiveToEsPipeline {
                     esDoc.get("genuskey"),
                     esDoc.get("subgenuskey"),
                     esDoc.get("specieskey"));
-            taxonKey.remove(null);
-            return taxonKey;
+            taxaKey.remove(null);
+            return taxaKey;
         }
 
         private static void putIfNotNull(Map<String,Object> map, String key, Object value) {
@@ -193,7 +190,7 @@ public class HiveToEsPipeline {
                     throw Throwables.propagate(ex);
                 }
             });
-            interpretedFields.put("taxonkey", taxonKey(interpretedFields));
+            interpretedFields.put("taxaKey", taxaKey(interpretedFields));
             return interpretedFields;
         }
 
@@ -229,15 +226,15 @@ public class HiveToEsPipeline {
             this.interpretedFields = fields.get(false);
         }
 
-        public HCatSchema getHCatSchema() {
+        HCatSchema getHCatSchema() {
             return hCatSchema;
         }
 
-        public List<String> getVerbatimFields() {
+        List<String> getVerbatimFields() {
             return verbatimFields;
         }
 
-        public List<String> getInterpretedFields() {
+        List<String> getInterpretedFields() {
             return interpretedFields;
         }
     }
