@@ -1,4 +1,12 @@
 {
+  "settings" : {
+    "index" : {
+      "refresh_interval" : -1,
+      "number_of_replicas" : 0,
+      "number_of_shards" : 108,
+      "routing.allocation.total_shards_per_node" : 12
+    }
+  },
   "mappings" : {
     "occurrence" : {
       "numeric_detection": false,
