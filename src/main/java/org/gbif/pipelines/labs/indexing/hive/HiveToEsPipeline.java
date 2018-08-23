@@ -198,7 +198,11 @@ public class HiveToEsPipeline {
             try {
                 Map<String,Object> esDoc = new HashMap<>(interpretedFields(record));
                 if((Boolean)esDoc.get("hascoordinate")) {
-                    esDoc.put("coordinate", esDoc.get("decimallatitude") + "," + esDoc.get("decimallongitude"));
+                  Map<String, Object> point = new HashMap<>();
+                  point.put("type", "point");
+                  point.put("coordinates", Arrays.asList(Double.valueOf(esDoc.get("decimallongitude").toString()),
+                          Double.valueOf(esDoc.get("decimallatitude").toString())));
+                  esDoc.put("coordinate", point);
                 }
                 esDoc.put("verbatim", verbatimFields(record));
                 return esDoc;
