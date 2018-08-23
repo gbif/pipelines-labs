@@ -22,7 +22,8 @@
         }
       ],
       "properties" : {
-        "coordinate" : { "type" : "geo_shape", "points_only": true },
+        "coordinate_shape" : { "type" : "geo_shape", "points_only": true },
+        "coordinate_point" : { "type" : "geo_point", "points_only": true, "store" : false },
         "eventdate" : { "type" : "date" },
         "lastinterpreted" : { "type" : "date" },
         "lastcrawled" : { "type" : "date", "index" : false },
@@ -38,6 +39,8 @@
         "license" : { "type" : "keyword" },
         "protocol" : { "type" : "keyword" },
         "publishingcountry" : { "type" : "keyword" },
+        "countrycode" : { "type" : "keyword" },
+        "waterbody" : { "type" : "keyword" },
         "publishingorgkey" : { "type" : "keyword" },
         "typestatus" : { "type" : "keyword" },
         "organismid" : { "type" : "keyword" },

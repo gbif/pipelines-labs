@@ -202,7 +202,8 @@ public class HiveToEsPipeline {
                   point.put("type", "point");
                   point.put("coordinates", Arrays.asList(Double.valueOf(esDoc.get("decimallongitude").toString()),
                           Double.valueOf(esDoc.get("decimallatitude").toString())));
-                  esDoc.put("coordinate", point);
+                  esDoc.put("coordinate_shape", point);
+                  esDoc.put("coordinate_point", esDoc.get("decimallatitude") + "," + esDoc.get("decimallongitude"));
                 }
                 esDoc.put("verbatim", verbatimFields(record));
                 return esDoc;
