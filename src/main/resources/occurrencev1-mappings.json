@@ -23,7 +23,7 @@
       ],
       "properties" : {
         "coordinate_shape" : { "type" : "geo_shape", "points_only": true },
-        "coordinate_point" : { "type" : "geo_point", "points_only": true, "store" : false },
+        "coordinate_point" : { "type" : "geo_point", "store" : false },
         "eventdate" : { "type" : "date" },
         "lastinterpreted" : { "type" : "date" },
         "lastcrawled" : { "type" : "date", "index" : false },
